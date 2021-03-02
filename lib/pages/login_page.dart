@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/helpers/mostrar_alerta.dart';
+import 'package:flutter_chat/services/auth_service.dart';
 import 'package:flutter_chat/widgets/boton_azul.dart';
 import 'package:flutter_chat/widgets/custom_input.dart';
 import 'package:flutter_chat/widgets/labels.dart';
 import 'package:flutter_chat/widgets/logo.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatelessWidget {
   @override
@@ -47,6 +50,8 @@ class __FormState extends State<_Form> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+
     return Container(
       margin: EdgeInsets.only(top: 40),
       padding: EdgeInsets.symmetric(horizontal: 50),
@@ -64,13 +69,26 @@ class __FormState extends State<_Form> {
             textController: passCtrl,
             isPasword: true,
           ),
-          //TODO: Crear boton
           BotonAzul(
             text: 'Ingresar ahora',
-            onPressed: () {
-              print(emailCtrl.text);
-              print(passCtrl.text);
-            },
+            onPressed: authService.autenticando
+                ? null
+                : () async {
+                    FocusScope.of(context).unfocus();
+
+                    final loginOK = await authService.login(
+                        emailCtrl.text.trim(), passCtrl.text.trim());
+
+                    if (loginOK) {
+                      //TODO: navegar a otra pantalla
+                      //TODO: conectar a nuestro socket server
+                      Navigator.pushReplacementNamed(context, 'usuarios');
+                    } else {
+                      //mostrar una Alerta
+                      mostrarAlerta(
+                          context, 'Login Error', 'Login y pass no valido');
+                    }
+                  },
           ),
         ],
       ),
